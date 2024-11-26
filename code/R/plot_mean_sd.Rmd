@@ -110,41 +110,6 @@ dev.off()
 
 
 
-```{r}
-## experiment 5: model 2: Broadband MA with a medium dynamic range of the log-spectrum: x(t) = ε(t)+0.4574ε(t−1)+0.2157ε(t−2) + 0.3951ε(t − 3) + 0.1383ε(t − 4).
-## model 3: Narrowband ARMA with a LARGE dynamic range of the log-spectrum: x(t) = 1.55x(t − 1) − 0.95x(t − 2) + ε(t) + 0.75ε(t − 1) + 0.35ε(t − 2)
-
-exp5 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/arima_result.xlsx", 
-    sheet = "x5")
-
-exp5_id <- exp5 %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Identity")
-
-p13 <- ggplot(exp5_id, aes(x = factor(Method, levels = c(   "Rectangle window", "Hann", "BIC", "KSF", "MRI", "FDR_0.01", "FER_0.01", "FDR_0.05", "FER_0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Rectangle window" = "Periodogram", "Hann", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
-      "FER0.01" = expression(FER[alpha == 0.01]),
-      "FDR0.05" = expression(FDR[alpha == 0.05]),
-      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
-
-p13 <- p13 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
-
-exp5_mar <- exp5 %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Martin")
-
-p14 <- ggplot(exp5_mar, aes(x = factor(Method, levels = c(   "Rectangle window", "Hann", "BIC", "KSF", "MRI", "FDR_0.01", "FER_0.01", "FDR_0.05", "FER_0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Rectangle window" = "Periodogram", "Hann", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
-      "FER0.01" = expression(FER[alpha == 0.01]),
-      "FDR0.05" = expression(FDR[alpha == 0.05]),
-      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
-
-p14 <- p14 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
-
-p15 <- p13 + p14
-setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("arima_exp5.pdf", width = 9, height = 6)
-p15
-dev.off()
-```
 
 
 
