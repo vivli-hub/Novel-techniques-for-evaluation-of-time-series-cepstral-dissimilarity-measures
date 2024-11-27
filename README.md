@@ -31,15 +31,15 @@ Test produces five different files. All of them are stored in one folder, whose 
 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
-| **`Ymata`**    | A 128×5000 matrix, consisting of 5000 simulated time series of length `%N`, generated based on the model of Time Series 1|                                                              |
-| **`Ymatb`**    | A 128×5000 matrix, consisting of 5000 simulated time series of length `%N`, generated based on the model of Time Series 2|    
+| **`Ymata`**    | A N×5000 matrix, consisting of 5000 simulated time series of length `%N`, generated based on the model of Time Series 1|                                                              |
+| **`Ymatb`**    | A N×5000 matrix, consisting of 5000 simulated time series of length `%N`, generated based on the model of Time Series 2|    
 | **`DistTrue`** | The true distance between the Time Series 1 and Time Series 2   |
 
 `resultsWP.mat`
 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
-| **`CEPaWP`**    | A 2*128×5000 matrix, , which contains the cepstral coefficients computed from 'Ymata' in 'simdata.mat'. It includes results with applying the rectangle window and Hann window.|                                                              |
+| **`CEPaWP`**    | A 2*N×5000 matrix, , which contains the cepstral coefficients computed from 'Ymata' in 'simdata.mat'. It includes results with applying the rectangle window and Hann window.|                                                              |
 | **`CEPbWP`**    | Similar to `CEPaWP`, the only difference is that it is based on the computation results of `Ymatb`|    
 | **`MatDistWP`** | A 2*5000 matrix, the estimated distance between the Time Series 1 and Time Series 2 based on cepstral coefficients with the rectangle window and Hann window |
 | **`ResWP`** | A 2*3 cell, the three columns represent the method name, the mean of the bias for the estimated distance, and the variance of the estimated distance.|
@@ -67,8 +67,8 @@ Test produces three different files. All of them are stored in one folder, whose
 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
-| **`Ymata`**    | A 128×100 matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 1|                                                              |
-| **`Ymatb`**    | A 128×100 matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 2|    
+| **`Ymata`**    | A N×NoTS matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 1|                                                              |
+| **`Ymatb`**    | A N×NoTS matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 2|    
 
 `results.mat`
 
@@ -82,8 +82,8 @@ Test produces three different files. All of them are stored in one folder, whose
 `CEP.mat`
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
-| **`CEP_WP`**    | A 2*128×200 matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and Hann window.|                                                              |
-| **`CEP_nulling`**    | A 8*128×200 matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and cepstral nulling of thresholds: BIC, kSF, MRI, FDR and FER at pre-specified FDR or FER values of 0.01 and 0.05.|    
+| **`CEP_WP`**    | A 2*N×2NoTS matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and Hann window.|                                                              |
+| **`CEP_nulling`**    | A 8*N×2NoTS matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and cepstral nulling of thresholds: BIC, kSF, MRI, FDR and FER at pre-specified FDR or FER values of 0.01 and 0.05.|    
 
 ## Data management
 
