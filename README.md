@@ -10,7 +10,7 @@ All the data was obtained using the functions Test.m and Testcluster.m. The simu
 
 ## Code
 - [Test.m](#Test)
-- [TestCluster.m](#Test_cluster)
+- [TestCluster.m](#TestCluster)
 
 
 ### Test
@@ -46,7 +46,7 @@ Test produces five different files. All of them are stored in one folder, whose 
 
  The contents among `resultsCN.mat`, `0.05resultsFDR.mat` and `0.01resultsFDR.mat` are essentially the same as in `resultsWP.mat`, with the only difference being the use of different methods to obtain the cepstral coefficients. The cepstral coefficients in `resultsCN.mat` were obtained using cepstral nulling with thresholds: BIC, KSF, and MRI. 0.05resultsFDR.mat and 0.01resultsFDR.mat are the cepstral coefficients obtained by applying FDR and FER thresholds at pre-specified FDR or FER values of 0.01 and 0.05, respectively.
 
-### Test_cluster
+### TestCluster
 
 This is the main function used to generate the simulated data and cluster these time series based on the estimated cepstral distance. It represents the similarity index to evaluate the performance of each method. For example, the function can be called as TestClust(N, NoTS, snr0, dist, flag_plot).
 
