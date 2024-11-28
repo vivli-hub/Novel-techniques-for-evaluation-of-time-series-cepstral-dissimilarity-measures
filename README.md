@@ -44,7 +44,7 @@ Test produces five different files. All of them are stored in one folder, whose 
 | **`MatDistWP`** | A 2*5000 matrix, the estimated distance between the Time Series 1 and Time Series 2 based on cepstral coefficients with the rectangle window and Hann window |
 | **`ResWP`** | A 2*3 cell, the three columns represent the method name, the mean of the bias for the estimated distance, and the variance of the estimated distance.|
 
- The contents among `resultsCN.mat`, `0.05resultsFDR.mat` and `0.01resultsFDR.mat` are essentially the same as in `resultsWP.mat`, with the only difference being the use of different methods to obtain the cepstral coefficients. The cepstral coefficients in `resultsCN.mat` were obtained using cepstral nulling with thresholds: BIC, KSF, and MRI. 0.05resultsFDR.mat and 0.01resultsFDR.mat are the cepstral coefficients obtained by applying FDR and FER thresholds at pre-specified FDR or FER values of 0.01 and 0.05, respectively.
+ The contents among `resultsCN.mat`, `0.05resultsFDR.mat` and `0.01resultsFDR.mat` are essentially the same as in `resultsWP.mat`, with the only difference being the use of different methods to obtain the cepstral coefficients. The cepstral coefficients in `resultsCN.mat` were obtained using cepstral nulling with thresholds: BIC, KSF, and MRI. `0.05resultsFDR.mat` and `0.01resultsFDR.mat` are the cepstral coefficients obtained by applying FDR and FER thresholds at pre-specified FDR or FER values of 0.01 and 0.05, respectively.
 
 ### TestCluster
 
