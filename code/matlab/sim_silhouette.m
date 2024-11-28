@@ -23,7 +23,7 @@ silhouette_WP = zeros(2,1);
 sim_WP = zeros(2,1);
 cluster_WP = zeros(N,2);
 for i = 1:2
-    [cluster_no, silhouetteValues, simValues] = cluster_kmedoids(squeeze(CEP_WP(i,:,:)), 10, weight, No, true_label);
+    [cluster_no, silhouetteValues, simValues] = cluster_kmedoids(squeeze(CEP_WP(i,:,:)), 5, weight, No, true_label);
     similarity = mean(simValues);
     silhouette_WP(i) = mean(silhouetteValues);
     sim_WP(i) = similarity;
@@ -34,7 +34,7 @@ silhouette_nulling = zeros(7,1);
 sim_nulling = zeros(7,1);
 cluster_nulling = zeros(N,7);
 for i = 1:7
-    [cluster_no, silhouetteValues, simValues] = cluster_kmedoids(squeeze(CEP_nulling(i+1,:,:)), 10, weight, No, true_label);
+    [cluster_no, silhouetteValues, simValues] = cluster_kmedoids(squeeze(CEP_nulling(i+1,:,:)), 5, weight, No, true_label);
     similarity = mean(simValues);
     silhouette_nulling(i) = mean(silhouetteValues);
     sim_nulling(i) = similarity;
@@ -85,7 +85,7 @@ end
     for i = 1:numRuns
         rng(i); 
         % Perform clustering based on midpoint partitioning
-        [idx, medoids] = kmedoids(D', k, 'Distance','euclidean' ,'replicates',5);
+        [idx, medoids] = kmedoids(D', k, 'Distance','euclidean' ,'replicates',10);
         allIdx(:, i) = idx;
         allMedoids{i} = medoids;
         index_1 = find(idx(:) == 1); 
