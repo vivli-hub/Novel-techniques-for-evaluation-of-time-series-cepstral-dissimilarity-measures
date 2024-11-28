@@ -23,7 +23,7 @@ df_identity <- subset(df_si, Weight == "Identity")
 p4 <- ggplot(df_identity, aes(x = as.factor(N), y = sim_metrics, color = factor(Method, levels = method_order), group = factor(Method, levels = method_order))) +
   geom_line(linewidth = 1.2) +  # Draw the line plot
   geom_point(size = 3) +    # Add data points
-  labs(title = "Identity Matrix", x = "Method", y = "Similarity Metric", color = "N") + scale_color_discrete(
+  labs(title = "Identity Matrix", x = "Sample Size", y = "Similarity Index (mean)", color = "N") + scale_color_discrete(
     labels = c(
       "hann" = "Hann",
       "rect" = "periodogram",
@@ -54,7 +54,7 @@ df_martin <- subset(df_si, Weight == "Martin")
 p5 <- ggplot(df_martin, aes(x = as.factor(N), y = sim_metrics, color = factor(Method, levels = method_order), group = factor(Method, levels = method_order))) +
   geom_line(linewidth = 1.2) +  # Draw the line plot
   geom_point(size = 3) +    # Add data points
-  labs(title = "Martin Matrix", x = "Method", y = "Similarity Metric", color = "Method")+ scale_color_discrete(
+  labs(title = "Martin Matrix", x = "Sample Size", y = "Similarity Index (mean)", color = "Method")+ scale_color_discrete(
     labels = c(
       "hann" = "Hann",
       "rect" = "periodogram",
