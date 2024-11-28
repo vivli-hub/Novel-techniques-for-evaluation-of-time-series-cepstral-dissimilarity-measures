@@ -2,7 +2,7 @@
 Evaluate the cepstral distance between the simulated time series with sinusoidal components and additive noise components
 
 # Authors
-Miaotian Li, Ciprian Doru Giurcaneanu, Matt Edwards
+Miaotian Li, Ciprian Doru Giurcaneanu
 
 ## Data
 All the data was obtained using the functions Test.m and Testcluster.m. The simulated data is stored in the outputs of these two functions. Detailed information is provided in the Code section.
