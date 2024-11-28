@@ -15,21 +15,20 @@ for met=1:2
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ResCepNulling = cell(2,3);
-ResCepNulling{1,1} = 'Rectangle window';
-%  ResCepNulling{2,1} = 'Hamming';
-ResCepNulling{2,1} = 'Hann';
-% ResCepNulling{4,1} = 'hann with half overlapping';
+ResWP = cell(2,3);
+ResWP{1,1} = 'Rectangle window';
+ResWP{2,1} = 'Hann';
+
 
 
 MD = MatDistWP-DistTrue;
 for ind=1:2
-    ResCepNulling{ind,2} = mean(MD(ind,:));
-    ResCepNulling{ind,3} = var(MD(ind,:),1);
+    ResWP{ind,2} = mean(MD(ind,:));
+    ResWP{ind,3} = var(MD(ind,:),1);
 end
 
 fname2 = strcat(fname,'resultsWP.mat');
-save(fname2, 'CEPaWP', 'CEPbWP', 'MatDistWP',"ResCepNulling");
+save(fname2, 'CEPaWP', 'CEPbWP', 'MatDistWP','ResWP');
 
 
 end %function
