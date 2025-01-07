@@ -1,9 +1,10 @@
 % Define the root directory (can be the parent directory containing all folders)
 function make_table_sd(specif)
+% Input specif-It refers to the special characters contained in the folders created for organizing the data, such as 'SNR-1'.
 
 rootDir = '/Volumes/Newsmy 1/phd/cepstral_distance/results/matlab/simulation/mean_sd';
 
-% Get all folders containing "Martin" in the root directory
+% Get all folders containing 'specif' in the root directory
 
 spec = strcat('*',specif,'*');
 folders = dir(fullfile(rootDir, spec));
@@ -41,9 +42,9 @@ fileNames = {'0.01resultsFDR.mat', '0.05resultsFDR.mat', 'resultsCN.mat', 'resul
 
 % Iterate through each file and load the ResCepNulling data
 for i = 1:length(fileNames)
-    data = load(fullfile(folderPath, fileNames{i}), 'ResCepNulling'); % 加载指定变量
-    
-    allResCepNulling = [allResCepNulling; data.ResCepNulling];
+    data = load(fullfile(folderPath, fileNames{i}), 'ResCepNulling'); 
+    fieldName = fieldnames(data);
+    allResCepNulling = [allResCepNulling; data.(fieldName{1})];
 end
 
 % Add a column in allResCepNulling, the value of this column is number_after_N
