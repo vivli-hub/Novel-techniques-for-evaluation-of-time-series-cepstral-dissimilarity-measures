@@ -1,5 +1,13 @@
-function windowed_per(fname, fname1, vecw)
+function windowed_per(fname, vecw, dis)
+%input
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% fname           % folder name
+% vecw             % Weight martix
+% dis              % sq-squared Eulcidean distance
+%                  % eu-squared Eulcidean distance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fname1 = strcat(fname,'simdata.mat');
 load(fname1,'Ymata', 'Ymatb', 'DistTrue');
 
 CEPaWP = comp_CEP_WP(Ymata);
@@ -10,7 +18,7 @@ Nr = size(Ymata,2);
 MatDistWP = Inf*ones(2,Nr);
 for met=1:2
     for rr=1:Nr
-        MatDistWP(met,rr) = comp_dist(CEPaWP(met,:,rr),CEPbWP(met,:,rr),vecw);
+        MatDistWP(met,rr) = comp_dist(CEPaWP(met,:,rr),CEPbWP(met,:,rr),vecw, dis);
     end
 end
 
@@ -28,7 +36,7 @@ for ind=1:2
 end
 
 fname2 = strcat(fname,'resultsWP.mat');
-save(fname2, 'CEPaWP', 'CEPbWP', 'MatDistWP','ResWP');
+save(fname2, 'CEPaWP', 'CEPbWP', 'MatDistWP',"ResWP");
 
 
 end %function
@@ -88,5 +96,8 @@ c_p = ifft(log(Phi_p));
  end
 
 end %function
+
+
+
 
 
