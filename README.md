@@ -26,7 +26,7 @@ This is the main function used to generate the simulated data and calculate the 
 | **`%dis`**   | Kind of distance:<br> 'sq' = squared Eulcidean distance<br> 'eu' = Eulcidean distance |
 
 **Output**
-Test produces five different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR',num2str(snr), '_', vec, '/')`. All of files have the extension .mat. 
+Test produces five different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR',num2str(snr), '_', vec, '_', dis, '/')`. All of files have the extension .mat. 
 
 `simdata.mat`
 
