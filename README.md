@@ -22,7 +22,8 @@ This is the main function used to generate the simulated data and calculate the 
 |----------------|---------------------------------------------------------------------------------------------------------|
 | **`%N`**    | The length of each time series                                                              |
 | **`%vec`** | The weighted matrix:<br> 'Martin' = Martin weighted matrix<br> 'Identity' = Identity weighted matrix |
-| **`%snr`**   | Signal-to-Noise Ration in dB                                                        |
+| **`%snr`**   | Signal-to-Noise Ration in dB   
+| **`%dis`**   | Kind of distance:<br> 'sq' = squared Eulcidean distance<br> 'eu' = Eulcidean distance |
 
 **Output**
 Test produces five different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR',num2str(snr), '_', vec, '/')`. All of files have the extension .mat. 
