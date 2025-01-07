@@ -1,22 +1,36 @@
-function nulling_cep(fname, fname1, vecw)
+function nulling_cep(fname, vecw, dis)
 
+%input
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% fname           % folder name
+% vecw             % Weight martix
+% dis              % sq-squared Eulcidean distance
+%                  % eu-squared Eulcidean distance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Load the simulated data and 'true' distance
+fname1 = strcat(fname,'simdata.mat');
 load(fname1,'Ymata', 'Ymatb', 'DistTrue');
+%Nr-No. of runs
+%N-length of time series
 [N, Nr] = size(Ymata);
 
+%Calculate the estimated cepstral ceofficients
 [CEPa, vec_KSFa] = comp_CEP(Ymata, N);
 [CEPb, vec_KSFb] = comp_CEP(Ymatb, N);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Calculated the estimated cepstral distance between the time series
 MatDist = Inf*ones(4,Nr);
 for met=1:4
     for rr=1:Nr
-        MatDist(met,rr) = comp_dist(CEPa(met,:,rr),CEPb(met,:,rr),vecw);
+        MatDist(met,rr) = comp_dist(CEPa(met,:,rr),CEPb(met,:,rr),vecw, dis);
     end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ResCepNulling = cell(4,3);
-ResCepNulling{1,1} = 'Periodogram';
+ResCepNulling{1,1} = 'log_Periodogram';
 ResCepNulling{2,1} = 'BIC';
 ResCepNulling{3,1} = 'KSF';
 ResCepNulling{4,1} = 'MRI';
@@ -27,6 +41,7 @@ for ind=1:4
     ResCepNulling{ind,3} = var(MD(ind,:));
 end
 
+%Find out the bias of the estimated distance (mean and std.)
 fname2 = strcat(fname,'resultsCN.mat');
 save(fname2, 'CEPa', 'vec_KSFa', 'CEPb', 'vec_KSFb', 'MatDist',"ResCepNulling");
 
@@ -115,7 +130,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [c_e, Phi_PER_mod] = comp_periodogram(y)
+function [log_phi, c_e, Phi_PER_mod] = comp_periodogram(y)
 %input:
 %   y = data vector
 %output
@@ -125,10 +140,12 @@ function [c_e, Phi_PER_mod] = comp_periodogram(y)
     L = N;
     %v = ones(size(y));
     Phi_PER = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
+    log_phi = log(Phi_PER);
     Phi_PER_mod = flipud([Phi_PER(L/2+1:L); Phi_PER(1:L/2)]);
     Phi_PER_mod = Phi_PER_mod(:);
     c_e = ifft(log(Phi_PER));
     c_e(1) = c_e(1) + 0.57721; % Euler constant
+    %check the estimated cepstral coefficients, keep symmetry
     if max(abs( c_e(2:N/2)-c_e(N:-1:N/2+2) ))>10^(-4)
         fprintf('ERROR in the estimated cepstral coeff.!\n');
         return;
@@ -156,8 +173,8 @@ vec_mu = [    1+sqrt(log(M))       % BIC
               ];
 
 for rr=1:Nr
-    [c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
-    CEP(1,:,rr) = c_e; %periodogram
+    [log_phi, c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
+    CEP(1,:,rr) = log_phi; %log-periodogram
     vec_KSF(rr) = comp_mu_KSF(c_e',N,M,Lk,grid_mu,0,0);
     vec_mu(2)   = vec_KSF(rr);
     for met=1:3
