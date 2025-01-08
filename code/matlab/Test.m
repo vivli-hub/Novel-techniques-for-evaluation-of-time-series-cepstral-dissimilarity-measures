@@ -1,17 +1,21 @@
-function Test(N, vec, snr)
+function Test(N, vec, snr, dis)
+%input
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% N                %length time series
-% vec              % Martin weight matrix
-%                  % Identity weight martix
-% snr              %SNR (in dB)
+% N                % length time series
+% vec              % Martin-Martin weight matrix
+%                  % id-Identity weight martix
+% snr              % SNR (in dB)
+% dis              % sq-squared Eulcidean distance
+%                  % eu-squared Eulcidean distance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%set seed
 seed = 123;  
 rng(seed);
 %%%%%%%%%%%%%%%
+%generate data: two sinusoidal model time series
 %Time series 1
 K0a = 2;                                 %no. of sinusoids
 beta0a = [2 2]';                              %amplitude
-% f0a = round(N*0.05)/N;                   %frequency
 f0a = round(N*[0.05 0.42]')/N;      %frequency
 phi0a = zeros(K0a,1);                    %phase
 %AR noise
@@ -24,20 +28,24 @@ K0b = 1;                                 %no. of sinusoids
 beta0b = 2;                              %amplitude
 f0b = round(N*0.40)/N;                   %frequency
 phi0b = zeros(K0b,1);                    %phase
-
+%MA nosie
 a0b = 1;
-% b0b = 1;
 b0b = [1 -0.85]';
 %%%%%%%%%%%%%%%
-
-snr0 = snr;
-fname = strcat('./N',num2str(N),'SNR',num2str(snr0), '_', vec, '/');
+%Place all the files that need to be stored in a single folder and give the folder a reasonable name.
+fname = strcat('./N',num2str(N),'SNR',num2str(snr), '_', vec,'_',dis, '/');
 if isfolder(fname)==0
     mkdir(fname);
 end
-[Phi_signala, Phi_noisea, c_pa, s20a] = all(N,beta0a,f0a,b0a,a0a,snr0);
+% caluculate the 'true' cepstral coefficients for the time series 1
+[Phi_signala, Phi_noisea, c_pa, s20a] = all(N,beta0a,f0a,b0a,a0a,snr);
+% plot the periodogram and 'true' cepstral coefficients for the times
+% series 1
 plot_spectra(Phi_signala+Phi_noisea, c_pa, 1);
-[Phi_signalb, Phi_noiseb, c_pb, s20b] = all(N,beta0b,f0b,b0b,a0b,snr0);
+% caluculate the 'true' cepstral coefficients for the time series 2
+[Phi_signalb, Phi_noiseb, c_pb, s20b] = all(N,beta0b,f0b,b0b,a0b,snr);
+% plot the periodogram and 'true' cepstral coefficients for the times
+% series 2
 plot_spectra(Phi_signalb+Phi_noiseb, c_pb, 2);
 
 % Weight Matrix
@@ -46,37 +54,42 @@ if strcmp(vec, 'Martin')
 else
     vecw = [0 ones(1, N/2)];
 end
-
-DistTrue = comp_dist(c_pa,c_pb,vecw);
+% Calculate the 'true' distance between the two time series
+DistTrue = comp_dist(c_pa,c_pb,vecw,dis);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% W = diag((1:N/2));
-% Sigma = (1/N)*(pi^2/6)*[eye(N/2-1) zeros(N/2-1,1); zeros(1,N/2-1) 2];
-% mu = c_pa(2:N/2+1)-c_pb(2:N/2+1);
-% 
-% 2*trace((W*Sigma)^2) + 4*mu'*W*Sigma*W*mu
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% No. of runs
 Nr = 5000;
 Ymata = Inf(N,Nr);
 Ymatb = Inf(N,Nr);
 
+% Generate the simulated data
 for run=1:Nr
     Ymata(:,run) = geny(N,beta0a,f0a,phi0a,b0a,a0a,s20a);
     Ymatb(:,run) = geny(N,beta0b,f0b,phi0b,b0b,a0b,s20b);
 end
 
+% Save all the simulated data including time series 1 and time series 2 and
+% 'true' distancein the 'simdata.mat'
 fname1 = strcat(fname,'simdata.mat');
 save(fname1,'Ymata','Ymatb','DistTrue');
 
-windowed_per(fname, fname1, vecw)
-
-nulling_cep(fname, fname1, vecw);
-
-FDRFER_cep(fname, fname1, vecw, 0.01);
-
-FDRFER_cep(fname, fname1, vecw, 0.05);
+% Calculate the estimated cepstral distance applying the rectangle window
+% and Hann window
+windowed_per(fname, vecw, dis)
+% Calculate the estimated cepstral distance applying the cepstral nulling.
+% The thresholds applied in this part including: MRI, KSF, BIC and also
+% log-periodogram without ifft.
+nulling_cep(fname, vecw, dis);
+% Calculate the estimated cepstral distance applying the cepstral nulling.
+% The thresholds applied in this part including: FDR and FER with alpha
+% equal 0.01
+FDRFER_cep(fname, vecw, 0.01, dis);
+% Calculate the estimated cepstral distance applying the cepstral nulling.
+% The thresholds applied in this part including: FDR and FER with alpha
+% equal 0.05
+FDRFER_cep(fname, vecw, 0.05, dis);
 end %function
 
 
@@ -226,30 +239,6 @@ function plot_spectra(Phi, c_p, ts)
     title(tit);
 
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dist = comp_dist(cepa,cepb,vecw)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%input:
-
-N = length(cepa);
-if length(cepb)~=N
-    fprintf('Different no. of cepstral coefficients for the two time series.\n');
-    dist = [];
-    return;
-end
-cepa = cepa(:);
-cepb = cepb(:);
-
-diff = abs(cepa-cepb);
-
-
-dist = sqrt( vecw*(diff(1:N/2+1).^2) );
-
-%dist = vecw*(diff(1:N/2+1).^2);
-
-end %function
-
 
 
 
