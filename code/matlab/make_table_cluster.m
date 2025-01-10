@@ -1,7 +1,7 @@
 function make_table_cluster(specif)
 
 % Get the paths of folders containing "SNR-1" in their names
-folders = '/Volumes/Newsmy 1/phd/cepstral_distance/results/matlab/simulation/cluster';
+folders = '/Volumes/Newsmy 1/phd/cepstral_distance/code/matlab/Simulation';
 
 % Get all folders containing "Martin" in the root directory
 
@@ -9,7 +9,7 @@ spec = strcat('*',specif,'*');
 folders = dir(fullfile(folders, spec));
 
 % Define the order of the Method column and repeat it twice
-method_order = {'rect', 'hann', 'BIC', 'KSF', 'MRI', 'FDR_0.01', 'FER_0.01', 'FDR_0.05', 'FER_0.05'};
+method_order = {'rect', 'hann', 'log-Periodogram', 'BIC', 'KSF', 'MRI', 'FDR_0.01', 'FER_0.01', 'FDR_0.05', 'FER_0.05'};
 method_repeated = repmat(method_order, 1, 2);
 
 % Initialize the final table to store results
@@ -62,7 +62,8 @@ end
 
 % Save the final data to a MAT file or export it as a CSV
 
-writetable(final_data, 'similarity_index.xlsx');
+name = strcat(specif,'_similarity_index.xlsx');
+writetable(final_data, name);
 end
 
 
