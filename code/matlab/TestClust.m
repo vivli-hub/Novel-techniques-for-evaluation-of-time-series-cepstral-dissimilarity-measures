@@ -1,18 +1,24 @@
-function TestClust(N, NoTS, snr0, dist, flag_plot)
+function TestClust(N, NoTS, snr0, dist, flag_plot, clust)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % N                 %length time series
 % NoTS              %no. of TS in each cluster
 % snr0              %SNR (in dB)
 % dist              %'Martin' or 'Euclidean'
-% flag_plot         %1=plot clusters
+% flag_plot         %1=plot clusters 0=no plot
+% clust             %The method of cluster
+%                   %'K-medoids_eu'= K-medoids with the Euclidean distance
+%                   %'K-medoids_sq'= K-medoids with the squared Euclidean distance
+%                   %'K-means'= K-means with the squared Euclidean distance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%set seed
 seed = 123;  
 rng(seed);
-fname = strcat('./N',num2str(N),'SNR',num2str(snr0),'/');
+%Set up a folder to store useful results.
+fname = strcat('./N',num2str(N),'SNR',num2str(snr0),'noTs',num2str(NoTS),'met', clust, '/');
 if isfolder(fname)==0
     mkdir(fname);
 end
-
+%Generate the simulated data of the two clusters
 %Param. cluster a
 K0a = 2;                    %no. of sinusoids
 beta0a = [2 2]';            %amplitude
@@ -21,36 +27,15 @@ phi0a = zeros(K0a,1); %phase
 a0a = [1 -0.85]';
 b0a = 1;
 
-% if strcmp(noise,'MA')
-%     a0a = 1;
-%     b0a = [1 -0.85]';
-% elseif strcmp(noise,'AR')
-%     a0a = [1 -0.85]';
-%     b0a = 1;
-% else
-%     fprintf('Error: Noise model\n');
-%     return
-% end
 
 %Param. cluster b
 K0b = 1;                     %no. of sinusoids
 beta0b = 2;                  %amplitude
 phi0b = zeros(K0b,1);        %phase
 
-% a0b = [1 -0.85]';
-% b0b = 1;
+%MA noise
 a0b = 1;
 b0b = [1 -0.85]';
-% if strcmp(noise,'MA')
-%     a0b = 1;
-%     b0b = [1 -0.85]';
-% elseif strcmp(noise,'AR')
-%     a0b = [1 -0.85]';
-%     b0b = 1;
-% else
-%     fprintf('Error: Noise model\n');
-%     return
-% end
 
 for i=1:NoTS
     f0a = [0.02 + (0.08-0.02)*rand(1);  0.39 + (0.45-0.39)*rand(1)];
@@ -60,13 +45,15 @@ for i=1:NoTS
     [s20b, ~] = comp_s20(snr0,beta0b,round(N*f0b)/N,b0b,a0b);
     Ymatb(:,i) = geny(N,beta0b,f0b,phi0b,b0b,a0b,s20b);
 end
-
+%label the simulated data
 labels(1:NoTS) = {'A'};
 labels(NoTS+1:2*NoTS)= {'B'};
 true_label = {1:NoTS, NoTS+1:2*NoTS};
+%Save the simulated data in 'simdata.mat'
 fname1 = strcat(fname,'simdata.mat');
 save(fname1,'Ymata','Ymatb');
 
+% Two kinds of distance between the time series
 if strcmp(dist, 'Euclidean') 
     vecw = [0 ones(1,N/2)];
 elseif strcmp(dist, 'Martin')
@@ -75,15 +62,21 @@ else
     fprintf('Error: Distance\n');
     return
 end
-
+%Calculate the cepstral coefficients applying the window periodogram and
+%cepstral nulling 
 [CEP_WP, CEP_nulling] = comp_exp_CEP(fname1);
+%shuffled_labels = labels(random_indices);
+%true_label = cell(1, 2);
+%true_label{1} = find(strcmp(shuffled_labels, 'A')); 
+%true_label{2} = find(strcmp(shuffled_labels, 'B'));
 CEP = [CEP_WP; CEP_nulling];
-fname2 = strcat(fname,'CEP.mat');
-save(fname2, 'CEP_WP', 'CEP_nulling');
 nulling_cep_clust(fname, CEP, vecw, labels, flag_plot, NoTS);
 nonzero_nulling = squeeze(sum(CEP_nulling(:, 1:N/2+1 , :) ~=0, 2));
-[silhouette_ID, sim_ID, cluster_ID] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 1, 2);
-[silhouette_Martin, sim_martin, cluster_martin] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 2, 2);
+fname2 = strcat(fname,'CEP.mat');
+save(fname2, 'CEP_WP', 'CEP_nulling', 'nonzero_nulling');
+
+[silhouette_ID, sim_ID] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 1, 2, clust);
+[silhouette_Martin, sim_martin] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 2, 2, clust);
 fname3 = strcat(fname,'results.mat');
 save(fname3,'silhouette_ID','sim_ID','silhouette_Martin', 'sim_martin');
 end %function
@@ -222,7 +215,8 @@ end %function
 function plot_spectra(Phi, c_p, ts)
 %input:
 %ts:    1 for TS1, 2 for TS2
-
+%Phi_p: true spectrum
+%c_p:   true cepstral coeff
     N = length(Phi);
     figure(ts)
     subplot(2,1,1)
@@ -238,14 +232,12 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Calculate cepstral coefficients with windowed periodogram  
+% Calculate cepstral coefficients with windowed periodogram and cepstral
+% nulling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input:
-%   y       = N*Nr matrix
-%   2 sces ECG recordings of people having malignant ventricular arrhymia,
-%   normal sinus rhythm and supraventricular arrhymia.
-%   N : length of each recording
-%   Nr : number of recordings
+%   fname1 : the name of the address which save the simulated data
+%   
 %Output:
 %   CEP_WP   = cepstral ceofficients from order of 1,...,N with windowed
 %   periodogram
@@ -254,46 +246,37 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CEP_WP, CEP_nulling] = comp_exp_CEP(fname1)
 load(fname1,'Ymata', 'Ymatb');
+% Put all of the simulated the data together and shuffle the data
 y = [Ymata Ymatb];
+%random_indices = randperm(size(y, 2));
+%y = y(:, random_indices); 
 % compute the cepstral coefficients
 Nr = size(y,2);
 N = size(y,1);
-%if (N < 720)
-   % fprintf('The length of signal is smaller than 720');
-% end
 % calculate the cepstral coefficients applied the windowed periodogram
 % hanning and hamming
 ytr = y(1:N,:);
 CEP_WP = comp_CEP_WP(ytr);
 % compute the cepstral coefficients without any windowed periodogram
-% ce = zeros(N, Nr);
-% for i = 1:Nr
-   % c_e = comp_periodogram(ytr(:, i));
-   % ce(:,i) = c_e;
-% end
 % apply the cepstral nulling
 % Thresholds including periodogram, BIC, KSF, MRI
 N_new = size(ytr, 1);
 CEP_nulling = Inf(8, N_new, Nr);
-[CEP, vec_KSF] = comp_CEP(ytr, N_new);
+[CEP, ~] = comp_CEP(ytr, N_new);
 CEP_nulling(1:4,:,:) = CEP;
-% for i = 1:Nr
-    % [CEP, vec_KSF] = comp_CEP(ytr(:,i), N_new);
-    % CEP_nulling(1:4,:,i) = CEP;
-% end
 % Thresholds including FDR and FER, respectively for alpha = 0.01 and alpha
 % = 0.05
 % FDR_0.01 and FER_0.01
     CEP = comp_CEPf(ytr, 0.01);
     CEP_nulling(5:6,:,:) = CEP;
 % FDR_0.05 and FER_0.05
-
     CEP = comp_CEPf(ytr, 0.05);
     CEP_nulling(7:8,:,:) = CEP;
 
 end %function
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Calculate the cepstral coefficients with the window periodogram
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CEP = comp_CEP_WP(Y)
 
@@ -315,12 +298,9 @@ function [c_p, Phi_WP_mod] = wp(y, v)
  N = length(y);
 
  if strcmp(v, 'rect')
-     
-      %Phi_WP = periodogramse(y,ones(1, N),N);
-       [Phi_WP, freq] = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
+     [Phi_WP, freq] = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
  elseif strcmp(v, 'hann')
-     %Phi_WP = periodogramse(y,hann(N),N);
-       [Phi_WP, freq] = periodogram(y, hann(N), (0:2*pi/N:2*pi*(N-1)/N));
+     [Phi_WP, freq] = periodogram(y, hann(N), (0:2*pi/N:2*pi*(N-1)/N));
  else
         fprintf('error \n ')
  end
@@ -340,6 +320,7 @@ function c_p = comp_cep_wp(Phi_p)
 %output:
 %   c_p    = cepstral coeff
 
+%checking
 c_p = ifft(log(Phi_p));
 if max(abs(imag(c_p)))<10^(-4)
     c_p = real(c_p);
@@ -356,18 +337,20 @@ end %function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [c_e, Phi_PER_mod] = comp_periodogram(y)
+function [log_phi,c_e, Phi_PER_mod] = comp_periodogram(y)
 %input:
 %   y = data vector
 %output
 %   Phi_PER_mod = periodogram
+%   log_phi = log periodogram
+%   c_e = cepstral coefficients
 
     N = length(y);
     L = N;
-    v = ones(size(y));
     Phi_PER = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
     Phi_PER_mod = flipud([Phi_PER(L/2+1:L); Phi_PER(1:L/2)]);
     Phi_PER_mod = Phi_PER_mod(:);
+    log_phi = log(Phi_PER);
     c_e = ifft(log(Phi_PER));
     c_e(1) = c_e(1) + 0.57721; % Euler constant
     if max(abs( c_e(2:N/2)-c_e(N:-1:N/2+2) ))>10^(-4)
@@ -376,13 +359,13 @@ function [c_e, Phi_PER_mod] = comp_periodogram(y)
     else
        c_e(N:-1:N/2+2) = c_e(2:N/2); 
     end
-if max(abs(imag(c_e)))<10^(-4)
+    if max(abs(imag(c_e)))<10^(-4)
     c_e = real(c_e);
 else
-    fprintf('ERROR: in the evaluation of c_e.\n');
+    fprintf('ERROR: in the evaluation of c_p.\n');
     c_e = [];
     return
-end
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -404,8 +387,8 @@ vec_mu = [    1+sqrt(log(M))       % BIC
               ];
 
 for rr=1:Nr
-    [c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
-    CEP(1,:,rr) = c_e; %periodogram
+    [log_phi,c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
+    CEP(1,:,rr) = log_phi; %log periodogram
     vec_KSF(rr) = comp_mu_KSF(c_e',N,M,Lk,grid_mu,0,0);
     vec_mu(2)   = vec_KSF(rr);
     for met=1:3
@@ -456,19 +439,27 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CEP = comp_CEPf(ytr, alpha)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%input:
+%   ytr     = data vector
+%   alpha   = pre-speciﬁed FDR or FER value
+%output:
+%   CEP   = new estimates of the cepstral coeff.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % compute the cepstral ceofficients
 N = size(ytr,1);
 Nr = size(ytr, 2);
 ce = zeros(N, Nr);
 for i = 1:Nr
-    c_e = comp_periodogram(ytr(:, i));
+    [~,c_e,~] = comp_periodogram(ytr(:, i));
     ce(:,i) = c_e;
 end
 %Cepstral nulling
 % Nr = Number of runs
 [N, Nr] = size(ce);
 M       = N/2+1;
-pv      = [1 - (alpha.*(1:M)'./M ) alpha./(M+1-(1:M)')];
+pv      = [1-(alpha.*(1:M)'./M ) alpha./(M+1-(1:M)')];
 qv      = norminv(pv);
 
 CEP     = Inf(2,N,Nr);
@@ -604,15 +595,15 @@ MatDist = Inf(10,Nr,Nr);
 for met=1:10
     for i=1:Nr
         for j=1:i-1
-            MatDist(met,i,j) = comp_dist(CEP(met,:,i),CEP(met,:,j),vecw);
+            MatDist(met,i,j) = comp_dist(CEP(met,:,i),CEP(met,:,j),vecw, 'eu');
         end
     end
 end
 
 methods = {
-    'Hann'
-    'Hamming'
-    'Periodogram' 
+    'Rectangle Window'
+    'Hanning'
+    'log-Periodogram' 
     'BIC'
     'KSF'
     'MRI'
@@ -630,7 +621,6 @@ for met=1:10
         YY=cmdscale(squeeze(MatDist(met,:,:)),2);
         subplot(5,2,met);
         plot(YY(1:No,1),YY(1:No,2),'ko', YY(No+1:2*No,1),YY(No+1:2*No,2),'r*');
-        % text(YY(:,1),YY(:,2),labels);
         title(methods(met));
     end
 end
@@ -652,4 +642,3 @@ D(D==Inf)   =0;
 D           = D+D';
     
 end %function
-
