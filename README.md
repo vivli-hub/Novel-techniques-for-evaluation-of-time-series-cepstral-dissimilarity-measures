@@ -5,7 +5,7 @@ Evaluate the cepstral distance between the simulated time series with sinusoidal
 Miaotian Li, Ciprian Doru Giurcaneanu
 
 ## Data
-All the data was obtained using the functions Test.m and Testcluster.m. The simulated data is stored in the outputs of these two functions. Detailed information is provided in the Code section.
+The results reported for simulated data are obtained by using the functions Test.m and Testcluster.m. Detailed information is provided in the Code section.
 
 
 ## Code
@@ -21,9 +21,9 @@ This is the main function used to generate the simulated data and calculate the 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
 | **`%N`**    | The length of each time series                                                              |
-| **`%vec`** | The weighted matrix:<br> 'Martin' = Martin weighted matrix<br> 'Identity' = Identity weighted matrix |
-| **`%snr`**   | Signal-to-Noise Ration in dB   
-| **`%dis`**   | Kind of distance:<br> 'sq' = squared Eulcidean distance<br> 'eu' = Eulcidean distance |
+| **`%vec`** | The matrix in the formula of distance:<br> 'Martin' = Martin matrix<br> 'Identity' = Identity matrix |
+| **`%snr`**   | Signal-to-Noise Ratio (in dB)   
+| **`%dis`**   | Options Distance:<br> 'sq' = squared distance<br> 'eu' = distance |
 
 **Output**
 Test produces five different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR',num2str(snr), '_', vec, '_', dis, '/')`. All of files have the extension .mat. 
