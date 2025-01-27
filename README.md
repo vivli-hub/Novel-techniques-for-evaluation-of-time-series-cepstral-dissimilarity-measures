@@ -5,8 +5,7 @@ Evaluate the cepstral distance between simulated time series (sine-waves in addi
 Miaotian Li, Ciprian Doru Giurcaneanu
 
 ## Data
-The results reported for simulated data are obtained by using the functions Test.m and Testcluster.m. Detailed information is provided in the Code section.
-
+The results reported for simulated data are obtained by using the functions Test.m and Testcluster.m. More detailed information can be found in the Code section.
 
 ## Code
 - [Test.m](#Test)
