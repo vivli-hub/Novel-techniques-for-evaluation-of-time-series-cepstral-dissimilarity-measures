@@ -1,5 +1,5 @@
 # Experiment
-Evaluate the cepstral distance between the simulated time series with sinusoidal components and additive noise components
+Evaluate the cepstral distance between simulated time series (sine-waves in additive noise)
 
 # Authors
 Miaotian Li, Ciprian Doru Giurcaneanu
@@ -14,14 +14,15 @@ The results reported for simulated data are obtained by using the functions Test
 
 
 ### Test
-This is the main function used to generate the simulated data and calculate the mean and variance of the bias for the estimated cepstral distance. For example, the function can be called as Test(N, vec, snr).
+This is the main function used to generate the simulated data and calculate the mean and variance of the estimation errors for the cepstral distance. 
+The function can be called as Test(N, vec, snr).
 
 **Input**
 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
 | **`%N`**    | The length of each time series                                                              |
-| **`%vec`** | The matrix in the formula of distance:<br> 'Martin' = Martin matrix<br> 'Identity' = Identity matrix |
+| **`%vec`** | The matrix in the formula of the distance:<br> 'Martin' = Martin matrix<br> 'Identity' = Identity matrix |
 | **`%snr`**   | Signal-to-Noise Ratio (in dB)   
 | **`%dis`**   | Options Distance:<br> 'sq' = squared distance<br> 'eu' = distance |
 
