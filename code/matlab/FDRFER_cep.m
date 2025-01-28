@@ -84,6 +84,7 @@ for rr=1:Nr
     end
     
 end %rr
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c_e, Phi_PER_mod] = comp_periodogram(y)
