@@ -109,7 +109,6 @@ function [c_e, Phi_PER_mod] = comp_periodogram(y)
     end
 end
 
-end %function
 
 
 
