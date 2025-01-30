@@ -1,10 +1,9 @@
 % Define the root directory (can be the parent directory containing all folders)
 function make_table_sd(specif)
-% Input specif-It refers to the special characters contained in the folders created for organizing the data, such as 'SNR-1'.
 
-rootDir = '/Volumes/Newsmy 1/phd/cepstral_distance/results/matlab/simulation/mean_sd';
+rootDir = '/Volumes/Newsmy 1/phd/cepstral_distance/code/matlab/Simulation';
 
-% Get all folders containing 'specif' in the root directory
+% Get all folders containing "Martin" in the root directory
 
 spec = strcat('*',specif,'*');
 folders = dir(fullfile(rootDir, spec));
@@ -38,11 +37,11 @@ suffix_after_dash = folderName(dash_index_2+a:end); % Extract the part after '-1
 allResCepNulling = [];
 
 % Define the file names to be merged
-fileNames = {'0.01resultsFDR.mat', '0.05resultsFDR.mat', 'resultsCN.mat', 'resultsWP.mat'};
+fileNames = {'0.01resultsFDR_FER.mat', '0.05resultsFDR_FER.mat', 'resultsCN.mat', 'resultsWP.mat'};
 
 % Iterate through each file and load the ResCepNulling data
 for i = 1:length(fileNames)
-    data = load(fullfile(folderPath, fileNames{i}), 'ResCepNulling'); 
+    data = load(fullfile(folderPath, fileNames{i}), 'Res*'); % 加载指定变量
     fieldName = fieldnames(data);
     allResCepNulling = [allResCepNulling; data.(fieldName{1})];
 end
@@ -66,7 +65,7 @@ sortedTable = sortrows(myTable, {'Weight', 'N'}, {'descend', 'descend'});
 
 
 % Save the table as an Excel file
-name = strcat('simulation_mean_sd_',specif,'.xlsx');
+name = strcat('simulation_mean_sd_eu_',specif,'.xlsx');
 writetable(sortedTable, name);
 
 end
