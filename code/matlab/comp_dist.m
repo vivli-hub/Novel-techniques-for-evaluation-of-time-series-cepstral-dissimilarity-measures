@@ -5,9 +5,9 @@ function dist = comp_dist(cepa,cepb,vecw,dis)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cepa             % cepstral coefficients for time series a
 % cepb             % cepstral coefficients for time series b
-% vecw             % weight martix
-% dis              % sq-squared Eulcidean distance
-%                  % eu-squared Eulcidean distance
+% vecw             % weight matrix
+% dis              % sq-squared distance
+%                  % eu-distance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N = length(cepa);
