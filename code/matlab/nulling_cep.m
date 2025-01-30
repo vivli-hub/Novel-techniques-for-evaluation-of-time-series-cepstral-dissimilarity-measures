@@ -2,10 +2,10 @@ function nulling_cep(fname, vecw, dis)
 
 %input
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fname           % folder name
-% vecw             % Weight martix
-% dis              % sq-squared Eulcidean distance
-%                  % eu-squared Eulcidean distance
+% fname            % folder name
+% vecw             % Weight matrix
+% dis              % sq-squared distance
+%                  % eu-distance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Load the simulated data and 'true' distance
@@ -20,28 +20,27 @@ load(fname1,'Ymata', 'Ymatb', 'DistTrue');
 [CEPb, vec_KSFb] = comp_CEP(Ymatb, N);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Calculated the estimated cepstral distance between the time series
-MatDist = Inf*ones(4,Nr);
-for met=1:4
+%Calculate the estimated cepstral distance between the time series
+MatDist = Inf(3,Nr);
+for met=1:3
     for rr=1:Nr
         MatDist(met,rr) = comp_dist(CEPa(met,:,rr),CEPb(met,:,rr),vecw, dis);
     end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ResCepNulling = cell(4,3);
-ResCepNulling{1,1} = 'log_Periodogram';
-ResCepNulling{2,1} = 'BIC';
-ResCepNulling{3,1} = 'KSF';
-ResCepNulling{4,1} = 'MRI';
+ResCepNulling = cell(3,3);
+ResCepNulling{1,1} = 'BIC';
+ResCepNulling{2,1} = 'KSF';
+ResCepNulling{3,1} = 'MRI';
 
 MD = MatDist-DistTrue;
-for ind=1:4
+for ind=1:3
     ResCepNulling{ind,2} = mean(MD(ind,:));
     ResCepNulling{ind,3} = var(MD(ind,:));
 end
 
-%Find out the bias of the estimated distance (mean and std.)
+%Mean and var estimation errors
 fname2 = strcat(fname,'resultsCN.mat');
 save(fname2, 'CEPa', 'vec_KSFa', 'CEPb', 'vec_KSFb', 'MatDist',"ResCepNulling");
 
@@ -77,7 +76,7 @@ mu_KSF = 1 + h_slen;
 %For h_slen = 0, KSF function is Inf !!!!
 Lbest = Inf;
 
-if flag_plot==2,
+if flag_plot==2
      L_vec = [];
      mu_KSF_vec = [];
      k_vec = [];
@@ -85,11 +84,11 @@ end
 
 vec_mu1 = vec_mu-1;
 vec_h = vec_mu1(2:end);
-for h_slen=vec_h,
+for h_slen=vec_h
     
     ff = find( ax_ord >= (1+h_slen) );
     k = length(ff);
-    if k>0,
+    if k>0
         z = x_ord(1:k);
         az = ax_ord(1:k);
         tilde_z = (1+2*h_slen) + floor((az-1-h_slen)./(2*h_slen))*(2*h_slen);
@@ -107,11 +106,11 @@ for h_slen=vec_h,
         %KSF
         L = L_signal + L_noise;
  
-        if L<Lbest,
+        if L<Lbest
             Lbest = L;
             mu_KSF = 1 + h_slen;
         end       
-        if flag_plot==2,
+        if flag_plot==2
             L_vec = [L_vec; L];
             mu_KSF_vec = [ mu_KSF_vec; (1 + h_slen)];
             k_vec = [k_vec; k];
@@ -122,7 +121,7 @@ for h_slen=vec_h,
     end %k>0
 end % for
 
-if flag_plot==2,
+if flag_plot==2
     plot_L_k_versus_mu(L_vec,k_vec,mu_KSF_vec,ex,N);
 end
 
@@ -165,7 +164,7 @@ Lk      = comp_Lk(M);
 grid_mu  = (1:0.1:10);
 
 vec_KSF = Inf(Nr,1);
-CEP     = Inf(4,N,Nr);
+CEP     = Inf(3,N,Nr);
 
 vec_mu = [    1+sqrt(log(M))       % BIC
               Inf                  % NULL KSF
@@ -173,12 +172,11 @@ vec_mu = [    1+sqrt(log(M))       % BIC
               ];
 
 for rr=1:Nr
-    [log_phi, c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
-    CEP(1,:,rr) = log_phi; %log-periodogram
+    [~, c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
     vec_KSF(rr) = comp_mu_KSF(c_e',N,M,Lk,grid_mu,0,0);
     vec_mu(2)   = vec_KSF(rr);
     for met=1:3
-        CEP(met+1,:,rr) = comp_c_til(c_e,N,vec_mu(met));
+        CEP(met,:,rr) = comp_c_til(c_e,N,vec_mu(met));
     end %met
 end %rr
 
@@ -236,7 +234,7 @@ function Lk = comp_Lk(M)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Lk = zeros(M,1);
-for k=1:M-1,
+for k=1:M-1
     temp = (M+1/2)*log(M)-(k+1/2)*log(k)-(M-k+1/2)*log(M-k) -1/2*log(2*pi);
     Lk(k) = min(M*log(2),temp+log(k)+log(1+log(M-1)));
 end
