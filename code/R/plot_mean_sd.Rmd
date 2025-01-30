@@ -18,29 +18,32 @@ library(gridExtra)
 
 
 ```{r pressure, echo=FALSE}
-library(readxl)
-SNR_1_identity_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Identity")
+#SNR_1_identity_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  #filter(Weight == "Identity")
 
-SNR_1_mar_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Martin")
+SNR_1_identity_1 <- read_excel("simulation_mean_sd_eu_SNR-1_.xlsx") %>% filter(Method %in% c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Identity_eu")
+#SNR_1_mar_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  #filter(Weight == "Martin")
+SNR_1_mar_1 <- read_excel("simulation_mean_sd_eu_SNR-1_.xlsx") %>% filter(Method %in% c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Martin_eu")
 
 
-p1 <- ggplot(SNR_1_identity_1, aes(x = factor(Method, levels = c( "Periodogram","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation Error" ~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+p1 <- ggplot(SNR_1_identity_1, aes(x = factor(Method, levels = c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation Error" ~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
       "FER0.01" = expression(FER[alpha == 0.01]),
       "FDR0.05" = expression(FDR[alpha == 0.05]),
       "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
 p1 <- p1 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
 
-p2 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Martin Matrix") + scale_x_discrete(label = c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+p2 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Martin Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
       "FER0.01" = expression(FER[alpha == 0.01]),
       "FDR0.05" = expression(FDR[alpha == 0.05]),
       "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme( plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
 p2 <- p2 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
 setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("figrue2.pdf", width = 9, height = 6)
+pdf("figrue2_SNR-1.pdf", width = 9, height = 6)
 p3 <- p1+p2
 
 p3
@@ -49,68 +52,64 @@ dev.off()
 ```
 
 ```{r}
-SNR_1_identity_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c("BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Identity")
+#SNR_1_identity_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  #filter(Weight == "Identity")
 
-SNR_1_mar_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c("BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Martin")
-
-
-p5 <- ggplot(SNR_1_identity_1, aes(x = factor(Method, levels = c( "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation Error" ~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
-      "FER0.01" = expression(FER[alpha == 0.01]),
-      "FDR0.05" = expression(FDR[alpha == 0.05]),
-      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
-p5 <- p5 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
-
-p6 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c("BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Martin Matrix") + scale_x_discrete(label = c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
-      "FER0.01" = expression(FER[alpha == 0.01]),
-      "FDR0.05" = expression(FDR[alpha == 0.05]),
-      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme( plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
-p6 <- p6 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
-setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("figrue2‘.pdf", width = 9, height = 6)
-p7 <- p5+p6
-
-p7
-dev.off()
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-```{r}
-SNR_1_identity_100 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR100_.xlsx") %>% filter(Method %in% c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Identity")
-
-SNR_1_identity_minus100 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-100_.xlsx") %>% filter(Method %in% c( "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
-  filter(Weight == "Identity")
+SNR_1_identity_1 <- read_excel("simulation_mean_sd_eu_SNR-10_.xlsx") %>% filter(Method %in% c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Identity_eu")
+#SNR_1_mar_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  #filter(Weight == "Martin")
+SNR_1_mar_1 <- read_excel("simulation_mean_sd_eu_SNR-10_.xlsx") %>% filter(Method %in% c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Martin_eu")
 
 
-p4 <- ggplot(SNR_1_identity_100, aes(x = factor(Method, levels = c(   "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Hann", "half-hann", "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+p4 <- ggplot(SNR_1_identity_1, aes(x = factor(Method, levels = c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation Error" ~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
       "FER0.01" = expression(FER[alpha == 0.01]),
       "FDR0.05" = expression(FDR[alpha == 0.05]),
       "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
 p4 <- p4 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
 
-p5 <- ggplot(SNR_1_identity_minus100, aes(x = factor(Method, levels = c(   "Periodogram", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
-  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c("Hann", "half-hann", "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+p5 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Martin Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
       "FER0.01" = expression(FER[alpha == 0.01]),
       "FDR0.05" = expression(FDR[alpha == 0.05]),
-      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 12, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
+      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme( plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
 p5 <- p5 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
-
-p6 <- p5+p4
 setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("mean_sd_snr100.pdf", width = 9, height = 6)
-p6
+pdf("figrue2_SNR-10.pdf", width = 9, height = 6)
+p6 <- p4+p5
 
+p6
 dev.off()
 ```
 
+```{r}
+SNR_1_identity_1 <- read_excel("simulation_mean_sd_eu_SNR10_.xlsx") %>% filter(Method %in% c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Identity_eu")
+#SNR_1_mar_1 <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/results/excel/simulation_mean_sd_SNR-1_.xlsx") %>% filter(Method %in% c( "Periodogram","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  #filter(Weight == "Martin")
+SNR_1_mar_1 <- read_excel("simulation_mean_sd_eu_SNR10_.xlsx") %>% filter(Method %in% c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")) %>% mutate(No = as.character(N), sd = sqrt(Variance)) %>%
+  filter(Weight == "Martin_eu")
 
 
+p7 <- ggplot(SNR_1_identity_1, aes(x = factor(Method, levels = c( "Rectangle window","BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation Error" ~(mean %+-% sd)), color = "Sample size", title = "Identity Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+      "FER0.01" = expression(FER[alpha == 0.01]),
+      "FDR0.05" = expression(FDR[alpha == 0.05]),
+      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme(legend.position = "none", plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
+p7 <- p7 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
 
+p8 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c( "Rectangle window", "BIC", "KSF", "MRI", "FDR0.01", "FER0.01", "FDR0.05", "FER0.05")), y = Mean, color = factor(No, levels = c("128", "256", "512", "1024", "2048", "4096")))) +
+  geom_errorbar(position=position_dodge(.9), aes(ymin=Mean-sd, ymax=Mean+sd), width=.5) + labs(x = "", y = expression("Estimation error"~(mean %+-% sd)), color = "Sample size", title = "Martin Matrix") + scale_x_discrete(label = c( "Rectangle window" = "Periodogram", "BIC", "KSF", "MRI", "FDR0.01" = expression(FDR[alpha == 0.01]),
+      "FER0.01" = expression(FER[alpha == 0.01]),
+      "FDR0.05" = expression(FDR[alpha == 0.05]),
+      "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme( plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
+p8 <- p8 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
+setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
+pdf("figrue2_SNR10.pdf", width = 9, height = 6)
+p9 <- p7+p8
 
-
-
+p9
+dev.off()
+```
