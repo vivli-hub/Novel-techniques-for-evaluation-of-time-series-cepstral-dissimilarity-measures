@@ -3,10 +3,10 @@ function FDRFER_cep(fname, vecw, alpha, dis)
 %input
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fname           % folder name
-% vecw            % Weight martix
+% vecw            % Weight matrix
 % alpha           % pre-speciﬁed FDR or FER value 
-% dis             % sq-squared Eulcidean distance
-%                 % eu-squared Eulcidean distance
+% dis             % sq-squared distance
+%                 % eu-distance
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -41,15 +41,15 @@ for ind=1:2
     ResCepNulling{ind,3} = var(MD(ind,:));
 end
 
-%Find out the bias of the estimated distance (mean and std.)
-fname2 = strcat(fname, num2str(alpha),'resultsFDR.mat');
+%Save the results
+fname2 = strcat(fname, num2str(alpha),'resultsFDR_FER.mat');
 save(fname2, 'CEPa',  'CEPb',  'MatDist',"ResCepNulling");
 
 end %function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CEP = comp_CEPf(ytr, alpha)
-% compute the cepstral ceofficients
+% compute the cepstral coefficients
 N = size(ytr,1);
 Nr = size(ytr, 2);
 ce = zeros(N, Nr);
@@ -95,7 +95,6 @@ function [c_e, Phi_PER_mod] = comp_periodogram(y)
 
     N = length(y);
     L = N;
-    v = ones(size(y));
     Phi_PER = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
     Phi_PER_mod = flipud([Phi_PER(L/2+1:L); Phi_PER(1:L/2)]);
     Phi_PER_mod = Phi_PER_mod(:);
