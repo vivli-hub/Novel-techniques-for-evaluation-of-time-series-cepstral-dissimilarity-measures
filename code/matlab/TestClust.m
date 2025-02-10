@@ -1,23 +1,42 @@
-function TestClust(N, NoTS, snr0, dist, flag_plot, clust)
+function sim_all_met = TestClust(Nruns, N, NoTS, snr0, wmat, clust_dist)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% N                 %length time series
-% NoTS              %no. of TS in each cluster
-% snr0              %SNR (in dB)
-% dist              %'Martin' or 'Euclidean'
-% flag_plot         %1=plot clusters 0=no plot
-% clust             %The method of cluster
-%                   %'K-medoids_eu'= K-medoids with the Euclidean distance
-%                   %'K-medoids_sq'= K-medoids with the squared Euclidean distance
-%                   %'K-means'= K-means with the squared Euclidean distance
+% Nruns             =no. runs experiment
+% N                 =length time series
+% NoTS              =no. of TS in each cluster
+% snr0              =SNR (in dB)
+% wmat              =matrix: 'Martin' or 'Identity'
+% clust_dist        =dist clustering: 'euclidean' or 'sqEuclidean'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %set seed
 seed = 123;  
 rng(seed);
-%Set up a folder to store useful results.
-fname = strcat('./N',num2str(N),'SNR',num2str(snr0),'noTs',num2str(NoTS),'met', clust, '/');
+
+%Set up a folder to store useful results
+fname = strcat('./N',num2str(N),'SNR', num2str(snr0), ...
+    'noTs',num2str(NoTS), ...
+    '_', wmat, ...
+    '_', clust_dist, '/');
+fname1 = strcat(fname,'similarity.mat');
 if isfolder(fname)==0
     mkdir(fname);
 end
+sim_all_met = []; 
+save(fname1, 'sim_all_met');
+
+%Run experiments
+for ex=1:Nruns
+    sim_all_met = exp_clust(fname1, N, NoTS, snr0, wmat, clust_dist);
+end
+
+end %function
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function sim_all_met = exp_clust(fname1, N, NoTS, snr0, wmat, clust_dist)
+ 
+%Read results previous experiments
+load(fname1, 'sim_all_met');
+
 %Generate the simulated data of the two clusters
 %Param. cluster a
 K0a = 2;                    %no. of sinusoids
@@ -26,7 +45,6 @@ phi0a = zeros(K0a,1); %phase
 %AR noise
 a0a = [1 -0.85]';
 b0a = 1;
-
 
 %Param. cluster b
 K0b = 1;                     %no. of sinusoids
@@ -37,6 +55,8 @@ phi0b = zeros(K0b,1);        %phase
 a0b = 1;
 b0b = [1 -0.85]';
 
+Ymata = Inf(N,NoTS);
+Ymatb = Inf(N,NoTS);
 for i=1:NoTS
     f0a = [0.02 + (0.08-0.02)*rand(1);  0.39 + (0.45-0.39)*rand(1)];
     [s20a, ~] = comp_s20(snr0,beta0a,round(N*f0a)/N,b0a,a0a);
@@ -45,40 +65,32 @@ for i=1:NoTS
     [s20b, ~] = comp_s20(snr0,beta0b,round(N*f0b)/N,b0b,a0b);
     Ymatb(:,i) = geny(N,beta0b,f0b,phi0b,b0b,a0b,s20b);
 end
-%label the simulated data
-labels(1:NoTS) = {'A'};
-labels(NoTS+1:2*NoTS)= {'B'};
-true_label = {1:NoTS, NoTS+1:2*NoTS};
-%Save the simulated data in 'simdata.mat'
-fname1 = strcat(fname,'simdata.mat');
-save(fname1,'Ymata','Ymatb');
+true_label = {(1:NoTS), (NoTS+1:2*NoTS)};
 
-% Two kinds of distance between the time series
-if strcmp(dist, 'Euclidean') 
-    vecw = [0 ones(1,N/2)];
-elseif strcmp(dist, 'Martin')
-    vecw = (0:N/2); 
+%Calculate the cepstral coefficients applying the windowed periodogram and
+%cepstral nulling 
+[CEP_WP, CEP_nulling] = comp_exp_CEP(Ymata, Ymatb);
+
+% % Two kinds of distance between the time series
+if strcmp(wmat, 'Identity') 
+    vecw = ones(1,N/2);
+elseif strcmp(wmat, 'Martin')
+    vecw = sqrt(1:N/2); 
 else
     fprintf('Error: Distance\n');
     return
 end
-%Calculate the cepstral coefficients applying the window periodogram and
-%cepstral nulling 
-[CEP_WP, CEP_nulling] = comp_exp_CEP(fname1);
-%shuffled_labels = labels(random_indices);
-%true_label = cell(1, 2);
-%true_label{1} = find(strcmp(shuffled_labels, 'A')); 
-%true_label{2} = find(strcmp(shuffled_labels, 'B'));
-CEP = [CEP_WP; CEP_nulling];
-nulling_cep_clust(fname, CEP, vecw, labels, flag_plot, NoTS);
-nonzero_nulling = squeeze(sum(CEP_nulling(:, 1:N/2+1 , :) ~=0, 2));
-fname2 = strcat(fname,'CEP.mat');
-save(fname2, 'CEP_WP', 'CEP_nulling', 'nonzero_nulling');
 
-[silhouette_ID, sim_ID] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 1, 2, clust);
-[silhouette_Martin, sim_martin] = sim_silhouette(CEP_WP, CEP_nulling, true_label, 2, 2, clust);
-fname3 = strcat(fname,'results.mat');
-save(fname3,'silhouette_ID','sim_ID','silhouette_Martin', 'sim_martin');
+sim_vector = Inf(1,9);
+for ii=1:2
+    sim_vector(ii) = clust_kmedoids(squeeze(CEP_WP(ii,:,:)), vecw, clust_dist, true_label);
+end
+for ii=1:7
+    sim_vector(ii+2) = clust_kmedoids(squeeze(CEP_nulling(ii,:,:)), vecw, clust_dist, true_label);
+end
+sim_all_met = [sim_all_met; sim_vector];
+save(fname1, 'sim_all_met');
+
 end %function
 
 
@@ -117,166 +129,42 @@ mm = (0:length(a0)-1)';
 sp = abs(a0*exp(-i*kron(mm,om0))).^2;
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Phi_noise = comp_Phi_noise(A,B,s2,N)
-%input:
-%   A        = AR part of the model
-%   B        = MA part of the model
-%   s2       = variance driven noise
-%   N        = no. of measurements
-%output:
-%   Phi_p    = true spectrum noise
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-A = A(:);
-B = B(:);
-freq = (0:N-1)/N;
-
-i = sqrt(-1);
-%AR part
-kk = length(A)-1;
-Exa = kron(freq',(0:kk));
-Exa = exp(-i*2*pi*Exa);
-
-%MA part
-kk = length(B)-1;
-Exb = kron(freq',(0:kk));
-Exb = exp(-i*2*pi*Exb);
-
-%true spectrum
-Phi_noise = s2.*(abs(Exb*B).^2)./(abs(Exa*A).^2); 
-Phi_noise = Phi_noise(:);
-
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Phi_signal = comp_Phi_signal(f0,beta0,N)
-%input:
-%   beta0  = amplitude
-%   f0     = frequency
-%   N      = no. of measurements
-%output:
-%   Phi_p  = true spectrum signal
-
-freq = (0:N-1)/N;
-
-Phi_signal = zeros(size(freq));
-for ind=1:length(f0)
-    pos = find(freq==f0(ind));
-    if length(pos)~= 1
-        fprintf('Error: computations for line spectra');
-        Phi_signal = [];
-        return
-    else
-        Phi_signal(pos) = beta0(ind)^2/2;
-        Phi_signal(N-pos+2) = Phi_signal(pos);
-    end
-end
-Phi_signal = Phi_signal(:);
-
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function c_p = comp_true_cep(Phi_p) 
-%input:
-%   Phi_p  = true spectrum
-%output:
-%   c_p    = true cepstral coeff
-
-c_p = ifft(log(Phi_p));
-if max(abs(imag(c_p)))<10^(-10)
-    c_p = real(c_p);
-else
-    fprintf('ERROR: in the evaluation of c_p.\n');
-    c_p = [];
-    return
-end
-
-end %function
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Phi_signal, Phi_noise, c_p, s20] = all(N,beta0,f0,b0,a0,snr0)
-
-    %true spectrum signal
-    Phi_signal = comp_Phi_signal(f0,beta0,N);
-
-    %variance driven noise 
-    [s20, ~] = comp_s20(snr0,beta0,f0,b0,a0);
-
-    %true spectrum noise
-    Phi_noise = comp_Phi_noise(a0,b0,s20,N);
-
-    %true cepstral coeff.
-    c_p = comp_true_cep(Phi_signal+Phi_noise);
-
-end %function
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plot_spectra(Phi, c_p, ts)
-%input:
-%ts:    1 for TS1, 2 for TS2
-%Phi_p: true spectrum
-%c_p:   true cepstral coeff
-    N = length(Phi);
-    figure(ts)
-    subplot(2,1,1)
-    semilogy(0:N-1,Phi,'b-')
-    tit = sprintf('TS%i: Log Spectrum',ts);
-    title(tit);
-    subplot(2,1,2)
-    semilogy(1:N-1,abs(c_p(2:end)),'r-') %!!!!!!!!
-    tit = sprintf('TS%i: Magnitudes Cepstral Coefficients',ts);
-    title(tit);
-
-end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calculate cepstral coefficients with windowed periodogram and cepstral
 % nulling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input:
-%   fname1 : the name of the address which save the simulated data
+%   fname1 : the name of the file which contains simulated data
 %   
 %Output:
-%   CEP_WP   = cepstral ceofficients from order of 1,...,N with windowed
-%   periodogram
-%   CEP_nulling = cepstral ceofficients from order of 1,...,N applied
-%   cepstral nulling 
+%   CEP_WP      = cepstral ceofficients 1,...,N (windowed periodogram)
+%   CEP_nulling = cepstral ceofficients 1,...,N (cepstral nulling) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CEP_WP, CEP_nulling] = comp_exp_CEP(fname1)
-load(fname1,'Ymata', 'Ymatb');
-% Put all of the simulated the data together and shuffle the data
-y = [Ymata Ymatb];
-%random_indices = randperm(size(y, 2));
-%y = y(:, random_indices); 
-% compute the cepstral coefficients
-Nr = size(y,2);
-N = size(y,1);
-% calculate the cepstral coefficients applied the windowed periodogram
-% hanning and hamming
-ytr = y(1:N,:);
+function [CEP_WP, CEP_nulling] = comp_exp_CEP(Ymata, Ymatb)
+
+% Put all of the simulated data together
+ytr = [Ymata Ymatb];
+[N, Nr] = size(ytr);
+
+% Calculate the cepstral coefficients (windowed periodogram)
+% rectangular and hanning
 CEP_WP = comp_CEP_WP(ytr);
-% compute the cepstral coefficients without any windowed periodogram
-% apply the cepstral nulling
-% Thresholds including periodogram, BIC, KSF, MRI
-N_new = size(ytr, 1);
-CEP_nulling = Inf(8, N_new, Nr);
-[CEP, ~] = comp_CEP(ytr, N_new);
-CEP_nulling(1:4,:,:) = CEP;
-% Thresholds including FDR and FER, respectively for alpha = 0.01 and alpha
-% = 0.05
+
+%Cepstral nulling
+CEP_nulling = Inf(7, N, Nr);
+[CEP, ~] = comp_CEP(ytr, N);
+CEP_nulling(1:3,:,:) = CEP;
 % FDR_0.01 and FER_0.01
-    CEP = comp_CEPf(ytr, 0.01);
-    CEP_nulling(5:6,:,:) = CEP;
+CEP = comp_CEPf(ytr, 0.01);
+CEP_nulling(4:5,:,:) = CEP;
 % FDR_0.05 and FER_0.05
-    CEP = comp_CEPf(ytr, 0.05);
-    CEP_nulling(7:8,:,:) = CEP;
+CEP = comp_CEPf(ytr, 0.05);
+CEP_nulling(6:7,:,:) = CEP;
 
 end %function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Calculate the cepstral coefficients with the window periodogram
+%Calculate the cepstral coefficients (windowed periodogram)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CEP = comp_CEP_WP(Y)
 
@@ -293,23 +181,21 @@ end %function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c_p, Phi_WP_mod] = wp(y, v)
 
-
-
  N = length(y);
 
  if strcmp(v, 'rect')
-     [Phi_WP, freq] = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
+     [Phi_WP, ~] = periodogram(y, ones(1, N), (0:2*pi/N:2*pi*(N-1)/N));
  elseif strcmp(v, 'hann')
-     [Phi_WP, freq] = periodogram(y, hann(N), (0:2*pi/N:2*pi*(N-1)/N));
+     [Phi_WP, ~] = periodogram(y, hann(N), (0:2*pi/N:2*pi*(N-1)/N));
  else
-        fprintf('error \n ')
+     fprintf('error \n ');
  end
  
  L = N;
-Phi_WP_mod = flipud([Phi_WP(L/2+1:L); Phi_WP(1:L/2)]);
+ Phi_WP_mod = flipud([Phi_WP(L/2+1:L); Phi_WP(1:L/2)]);
  c_p = comp_cep_wp(Phi_WP);
 
-end %funtion
+end %function
 
 
 
@@ -333,10 +219,6 @@ end
 end %function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function [log_phi,c_e, Phi_PER_mod] = comp_periodogram(y)
 %input:
 %   y = data vector
@@ -379,7 +261,7 @@ Lk      = comp_Lk(M);
 grid_mu  = (1:0.1:10);
 
 vec_KSF = Inf(Nr,1);
-CEP     = Inf(4,N,Nr);
+CEP     = Inf(3,N,Nr);
 
 vec_mu = [    1+sqrt(log(M))       % BIC
               Inf                  % NULL KSF
@@ -387,12 +269,11 @@ vec_mu = [    1+sqrt(log(M))       % BIC
               ];
 
 for rr=1:Nr
-    [log_phi,c_e, ~]    = comp_periodogram(Ymat(1:N,rr));
-    CEP(1,:,rr) = log_phi; %log periodogram
-    vec_KSF(rr) = comp_mu_KSF(c_e',N,M,Lk,grid_mu,0,0);
-    vec_mu(2)   = vec_KSF(rr);
+    [~,c_e, ~]      = comp_periodogram(Ymat(1:N,rr));
+    vec_KSF(rr)     = comp_mu_KSF(c_e',N,M,Lk,grid_mu,0,0);
+    vec_mu(2)       = vec_KSF(rr);
     for met=1:3
-        CEP(met+1,:,rr) = comp_c_til(c_e,N,vec_mu(met));
+        CEP(met,:,rr) = comp_c_til(c_e,N,vec_mu(met));
     end %met
 end %rr
 
@@ -512,7 +393,7 @@ mu_KSF = 1 + h_slen;
 %For h_slen = 0, KSF function is Inf !!!!
 Lbest = Inf;
 
-if flag_plot==2,
+if flag_plot==2
      L_vec = [];
      mu_KSF_vec = [];
      k_vec = [];
@@ -520,11 +401,11 @@ end
 
 vec_mu1 = vec_mu-1;
 vec_h = vec_mu1(2:end);
-for h_slen=vec_h,
+for h_slen=vec_h
     
     ff = find( ax_ord >= (1+h_slen) );
     k = length(ff);
-    if k>0,
+    if k>0
         z = x_ord(1:k);
         az = ax_ord(1:k);
         tilde_z = (1+2*h_slen) + floor((az-1-h_slen)./(2*h_slen))*(2*h_slen);
@@ -542,11 +423,11 @@ for h_slen=vec_h,
         %KSF
         L = L_signal + L_noise;
  
-        if L<Lbest,
+        if L<Lbest
             Lbest = L;
             mu_KSF = 1 + h_slen;
         end       
-        if flag_plot==2,
+        if flag_plot==2
             L_vec = [L_vec; L];
             mu_KSF_vec = [ mu_KSF_vec; (1 + h_slen)];
             k_vec = [k_vec; k];
@@ -557,7 +438,7 @@ for h_slen=vec_h,
     end %k>0
 end % for
 
-if flag_plot==2,
+if flag_plot==2
     plot_L_k_versus_mu(L_vec,k_vec,mu_KSF_vec,ex,N);
 end
 
@@ -575,7 +456,7 @@ function Lk = comp_Lk(M)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Lk = zeros(M,1);
-for k=1:M-1,
+for k=1:M-1
     temp = (M+1/2)*log(M)-(k+1/2)*log(k)-(M-k+1/2)*log(M-k) -1/2*log(2*pi);
     Lk(k) = min(M*log(2),temp+log(k)+log(1+log(M-1)));
 end
@@ -583,62 +464,46 @@ Lk(M) = Inf; %at least one coeff. is turned to zero
 
 end
 
-
-function nulling_cep_clust(fname, CEP, vecw, labels, flag_plot, No)
-
-
-Nr = size(CEP, 3);
-
-
-
-MatDist = Inf(10,Nr,Nr);
-for met=1:10
-    for i=1:Nr
-        for j=1:i-1
-            MatDist(met,i,j) = comp_dist(CEP(met,:,i),CEP(met,:,j),vecw, 'eu');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function similarity = cluster_similarity(C, C_prime)
+    k = length(C);
+    similarity_sum = 0;
+    
+    for i = 1:k
+        max_sim = 0;
+        for j = 1:k
+            sim = 2 * length(intersect(C{i}, C_prime{j})) / (length(C{i}) + length(C_prime{j}));
+            if sim > max_sim
+                max_sim = sim;
+            end
         end
+        similarity_sum = similarity_sum + max_sim;
     end
-end
-
-methods = {
-    'Rectangle Window'
-    'Hanning'
-    'log-Periodogram' 
-    'BIC'
-    'KSF'
-    'MRI'
-    'FDR_0.01'
-    'FER_0.01'
-    'FDR_0.05'
-    'FER_0.05'};
-              
-
-for met=1:10
-     MatDist(met,:,:) = transf_mat_dist( squeeze(MatDist(met,:,:)) );
-    
-    if flag_plot==1 %plot clusters
-        figure(1) 
-        YY=cmdscale(squeeze(MatDist(met,:,:)),2);
-        subplot(5,2,met);
-        plot(YY(1:No,1),YY(1:No,2),'ko', YY(No+1:2*No,1),YY(No+1:2*No,2),'r*');
-        title(methods(met));
-    end
-end
-
-fname2 = strcat(fname,'results.mat');
-save(fname2, 'MatDist', "methods");
-
+    similarity = similarity_sum / k;
 end %function
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function D = transf_mat_dist(MD)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function sim_index = clust_kmedoids(c_e, vecw, clust_dist, true_label)
+%Input:
+%c_e        = cep. coeff. for all time series
+%vecw       = vector weights dist.
+%clust_dist = dist clustering: 'euclidean' or 'seuclidean'
+%true_label = true labels clusters
+%Output:
+%sim_index  = similarity index
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-D           = MD;
-[I,J]       = find(MD==Inf);
-if sum(I>J)>0
-    fprintf('Inf-values in incorrect positions in the matrix of distances.\n');
+[N, Nr] = size(c_e); 
+D = Inf(N/2, Nr);
+for i = 1:Nr
+    D(:,i) = vecw'.*c_e(2:N/2+1,i);
 end
-D(D==Inf)   =0;
-D           = D+D';
-    
-end %function
+
+noc = 2; %no. of clusters
+[idx, ~] = kmedoids(D', noc, 'Distance',clust_dist,'replicates',3);
+index_1 = find(idx(:) == 1); 
+index_2 = find(idx(:) == 2);
+C = {index_1, index_2};
+sim_index = cluster_similarity(true_label, C);
+
+end % function
