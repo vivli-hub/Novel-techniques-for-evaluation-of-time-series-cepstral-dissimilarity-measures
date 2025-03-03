@@ -75,7 +75,7 @@ sortedTable = sortrows(myTable, {'Weight', 'N'}, {'descend', 'descend'});
 
 
 % Save the table as an Excel file
-name = strcat('mean_sd_eu.csv');
+name = 'mean_sd_eu.csv';
 writetable(sortedTable, name);
 
 end
