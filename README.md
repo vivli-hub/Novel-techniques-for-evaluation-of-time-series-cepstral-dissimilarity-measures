@@ -101,6 +101,7 @@ Once you have these Mat files, you can run the main function `exp_ecg.m`. Additi
 - [make_table_sd.m](#make_table_sd)
 - [plot_sim.m](#plot_sim)
 - [make_table_ecg.m](#make_table_ecg)
+- [dtw.Rmd](#dtw)
 - [generate_graph.Rmd](#generate_graph)
 
 ### make_table_sd
@@ -137,6 +138,27 @@ Convert the data from `results_ecg.mat` to xlsx format, and add the type of ceps
 **Output**
 
 **`ecg_table_100.xlsx`**: The results in 100 times ecperiments
+
+### dtw
+
+We used the package `dtwclust` (https://cran.r-project.org/web/packages/dtwclust/index.html) to compute the Dynamic Time Warping distance between ECG signals. K-medoids was applied for clustering, and the similarity index was calculated.
+
+**Input**
+
+**`VTHR.csv`**: Convert the Mat files in the N folder to CSV format.
+
+**`N.csv`**: Convert the Mat files in the VTHR folder to CSV format.
+
+**`VTHR_index.csv`**: Convert VTHR from `index.mat` to CSV format.
+
+**`N_index.csv`**: Convert N from `index.mat` to CSV format. 
+
+**Output**
+
+**`true_label_1_100.xlsx`**: The true groupings of all ECG signals across 100 experiments.
+
+**`class_label_1_100.xlsx`**: The clustering results from 100 experiments.
+
 
 ### generate_graph
 
