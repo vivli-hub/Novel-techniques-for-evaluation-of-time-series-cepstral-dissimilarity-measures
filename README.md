@@ -49,42 +49,25 @@ Test produces five different files. All of them are stored in one folder, whose 
 
 ### TestCluster
 
-This is the main function used to generate the simulated data and cluster these time series based on the estimated cepstral distance. It represents the similarity index to evaluate the performance of each method. For example, the function can be called as TestClust(N, NoTS, snr0, dist, flag_plot).
+This is the main function used to generate the simulated data and cluster these time series based on the estimated cepstral distance. It represents the similarity index to evaluate the performance of each method. For example, the function can be called as TestClust(Nruns, N, NoTS, snr0, wmat, clust_dist).
 
 **Input**
 
 | **Variable**   | **Description**                                                                                         |
 |----------------|---------------------------------------------------------------------------------------------------------|
+| **`%Nruns`**    | Number of runs in the experiment                                                              |
 | **`%N`**    | The length of each time series                                                              |
 | **`%NoTS`** | Number of Time Series in each cluster |
 | **`%snr0`**   | Signal-to-Noise Ration in dB                                                        |
 | **`%dist`**   | The weighted matrix:<br> 'Martin' = Martin weighted matrix<br> 'Identity' = Identity weighted matrix |
-| **`%flag_plot`**   | 0 = No plots<br> 1 = Plots for each method and each distance |
+| **`%clust_dist`**   | The distance used in the cluster:<br> 'euclidean' = Euclidean distance <br> 'sqEuclidean' = squared Euclidean distance |
 
 **Output**
-Test produces three different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR',num2str(snr0),'/')`. All of files have the extension .mat. 
+Test produces three different files. All of them are stored in one folder, whose name is given by `strcat('./N',num2str(N),'SNR', num2str(snr0), 'noTs', num2str(NoTS), '_', wmat, '_', clust_dist, '/')`. All of files have the extension .mat. 
 
-`simdata.mat`
+`similarity.mat`
 
-| **Variable**   | **Description**                                                                                         |
-|----------------|---------------------------------------------------------------------------------------------------------|
-| **`Ymata`**    | A N×NoTS matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 1|                                                              |
-| **`Ymatb`**    | A N×NoTS matrix, consisting of 100 simulated time series of length `%N`, generated based on the model of time series in Cluster 2|    
-
-`results.mat`
-
-| **Variable**   | **Description**                                                                                         |
-|----------------|---------------------------------------------------------------------------------------------------------|
-| **`silhouette_Martin`**    | A 9×1 matrix, clustering based on Martin Distance, resulting in the Silhouette coefficient. It includes a total of 9 different cepstral coefficients: Rectangle window, Hann window, BIC threshold, KSF threshold, MRI threshold, and FDR and FER thresholds at pre-specified FDR or FER values of 0.01 and 0.05.|                                                              |
-| **`silhouette_ID`**    | A 9×1 matrix matrix, similar to `silhouette_Martin`, but it is based on clustering using Identity Distance.|    
-| **`sim_Martin`**    | A 9×1 matrix matrix, clustering based on Martin Distance, resulting in the Similarity index.|    
-| **`sim_ID`**    | A 9×1 matrix matrix, similar to `sim_Martin`, but it is based on clustering using Identity Distance.|  
-
-`CEP.mat`
-| **Variable**   | **Description**                                                                                         |
-|----------------|---------------------------------------------------------------------------------------------------------|
-| **`CEP_WP`**    | A 2*N×2NoTS matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and Hann window.|                                                              |
-| **`CEP_nulling`**    | A 8*N×2NoTS matrix, , which contains the cepstral coefficients computed from 'Ymata' and 'Ymatb' in 'simdata.mat'. It includes results with applying the rectangle window and cepstral nulling of thresholds: BIC, kSF, MRI, FDR and FER at pre-specified FDR or FER values of 0.01 and 0.05.|    
+The `%Nruns`×9 matrix records the clustering similarity index compared to the ground truth. The 9 columns correspond to the following methods for computing cepstral coefficients: Rectangle window, Hann window, cepstral nulling with BIC, KSF, MRI, FDR with a pre-specified level of 0.01, FER with a pre-specified level of 0.01, FDR with a pre-specified level of 0.05, and FER with a pre-specified level of 0.05.
 
 ## Data management
 
