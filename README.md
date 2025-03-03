@@ -121,8 +121,10 @@ The `plot_sim.m` function evaluates clustering performance across various signal
 | **`%clust_dist`**   | The distance used in the cluster:<br> 'euclidean' = Euclidean distance <br> 'sqEuclidean' = squared Euclidean distance |
 
 **Output**
-`SNR-10_sim_id.xlsx`
-`SNR10_sim_id.xlsx`
+`SNR-10_sim_Identity.xlsx`
+`SNR10_sim_Identity.xlsx`
+`SNR-10_sim_Martin.xlsx`
+`SNR10_sim_Martin.xlsx`
 
 ### make_table_ecg
 
