@@ -52,20 +52,30 @@ numberColumn = num2cell(number_after_N * ones(size(allResCepNulling, 1), 1));
 newColumn = cell(size(allResCepNulling, 1), 1);
 newColumn(:) = {suffix_after_dash};
 allResCepNulling = [allResCepNulling, numberColumn, newColumn];
+pattern = '(?<=SNR)-?\d+';
+numberStr = regexp(folderName, pattern, 'match');
+number = str2double(numberStr{1});
+repeatedArray = repelem(number, size(allResCepNulling, 1))';
+number = num2cell(repeatedArray);
+allResCepNulling = [allResCepNulling, number];
 table = [table; allResCepNulling];
 
 end
 
 
 % Convert the cell array to a table for sorting
-myTable = cell2table(table, 'VariableNames', {'Method', 'Mean', 'Variance', 'N', 'Weight'});
+myTable = cell2table(table, 'VariableNames', {'Method', 'Mean', 'Variance', 'N', 'Weight', 'SNR'});
 
+idxMartin = contains(myTable.Weight, 'Martin');
+myTable.Weight(idxMartin) = {'Martin'};
+idxIdentity = contains(myTable.Weight, 'Identity');
+myTable.Weight(idxIdentity) = {'id'};
 % Sort by the fourth and fifth columns in descending order
 sortedTable = sortrows(myTable, {'Weight', 'N'}, {'descend', 'descend'});
 
 
 % Save the table as an Excel file
-name = strcat('simulation_mean_sd_eu_',specif,'.xlsx');
+name = strcat('mean_sd_eu.csv');
 writetable(sortedTable, name);
 
 end
