@@ -1,0 +1,118 @@
+---
+title: ''
+output: html_document
+date: "2024-08-29"
+---
+
+```{r}
+library(readr)
+library(dtwclust)
+library(readxl)
+library(dplyr)
+library(openxlsx)
+## Read data
+VTHR <- read_csv("/Volumes/Newsmy 1/phd/Nesi/VTHR.csv")
+N <- read_csv("/Volumes/Newsmy 1/phd/Nesi/N.csv")
+VTHR_index <- read_csv("/Volumes/Newsmy 1/phd/Nesi/VTHR_index.csv")
+N_index <- read_csv("/Volumes/Newsmy 1/phd/Nesi/N_index.csv")
+```
+
+
+
+```{r}
+## 100 times experiments
+system.time({
+  true_label <- data.frame(matrix(0, nrow = 200, ncol = 100))
+  class_label <- data.frame(matrix(0, nrow = 200, ncol = 100))
+  for (i in 1:100) {
+    N_index_1 <- as.numeric(unlist(N_index[ ,i]))
+    N_1 <- N[, N_index_1]
+
+    VTHR_index_1 <- as.numeric(unlist(VTHR_index[ ,i]))
+    VTHR_1 <- VTHR[, VTHR_index_1]
+
+    data <- cbind(N_1, VTHR_1)
+    Index <- sample(ncol(data))
+    label <- ifelse(Index >= 100, "VTHR", "N")
+    true_label[,i] <- label
+    data <- data[, Index]
+    data <- as.matrix(data)
+    data_t <- t(data)
+    data_t <- as.data.frame(data_t)
+    cluster_result <- tsclust(data_t, 
+                          type = "partitional",
+                          k = 2,            
+                          distance = "dtw", 
+                          centroid = c("pam"), 
+                          window.size = 72,
+                          seed = 123        
+                         )
+   cluster_label <- cluster_result@cluster
+   class_label[,i] <- cluster_label
+  }
+})
+
+write.xlsx(true_label, "true_label_1_100.xlsx")
+write.xlsx(class_label, "class_label_1_100.xlsx")
+```
+
+
+```{R}
+
+### Function to calculate the similarity index
+sim_Gi_Aj <- function(Gi, Aj) {
+  intersect_size <- length(intersect(Gi, Aj))
+  union_size <- length(Gi) + length(Aj)
+  return (2 * intersect_size / union_size)
+}
+
+# calculate the similarity index
+sim_G_A <- function(G, A) {
+  k <- length(G)
+  max_sim <- numeric(k)
+  
+  for (i in 1:k) {
+    Gi <- G[[i]]
+    sim_list <- numeric(k)
+    
+    for (j in 1:k) {
+      Aj <- A[[j]]
+      sim_list[j] <- sim_Gi_Aj(Gi, Aj)
+    }
+    
+    max_sim[i] <- max(sim_list)
+  }
+  
+  return (mean(max_sim))
+}
+```
+
+```{R}
+class_label <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/exp2/results/excel/class_label_1_100.xlsx") %>%
+  select(-1)
+true_label <- read_excel("/Volumes/Newsmy 1/phd/cepstral_distance/exp2/results/excel/true_label_1_100.xlsx") %>%
+  select(-1)
+
+
+similarity <- c()
+for (i in 1:100) {
+  vthr_locations <- which(true_label[, i] == "VTHR")
+n_locations <- which(true_label[, i] == "N")
+label_1 <- list(vthr_locations, n_locations)
+
+vthr_locations <- which(class_label[,i] == 1)
+n_locations <- which(class_label[,i] == 2)
+cluster_label <- list(vthr_locations, n_locations)
+similarity[i] <- sim_G_A(label_1, cluster_label)
+}
+
+mean(similarity)
+
+sd(similarity)
+
+
+```
+
+
+
+
