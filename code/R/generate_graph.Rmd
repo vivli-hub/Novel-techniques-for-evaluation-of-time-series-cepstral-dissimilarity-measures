@@ -40,7 +40,7 @@ p2 <- ggplot(SNR_1_mar_1, aes(x = factor(Method, levels = c( "Rectangle window",
       "FER0.05" = expression(FER[alpha == 0.05]))) + theme_bw() + theme( plot.title = element_text(size = 12, hjust = 0.5), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(size = 11, angle = 30,vjust = 0.85,hjust = 0.75), axis.title.y = element_text(size = 11), legend.text = element_text(size = 10), legend.title = element_text(size = 11))+geom_point(position=position_dodge(.9))
 p2 <- p2 + geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")
 setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("figrue2_SNR-1.pdf", width = 9, height = 6)
+pdf("figrue2.pdf", width = 9, height = 6)
 p3 <- p1+p2
 
 p3
