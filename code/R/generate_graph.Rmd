@@ -181,7 +181,7 @@ p3 <- ggplot(diff_2_kmedoids_sq, aes(x = factor(Method, levels = c( "Hann",  "Pe
 p4 = p1 + p2 + p3
 
 setwd("/Volumes/Newsmy 1/phd/cepstral_distance/results/graph")
-pdf("figure5.pdf", width = 10, height = 6)
+pdf("figure4.pdf", width = 10, height = 6)
 p4
 
 dev.off()
