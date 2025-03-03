@@ -1,11 +1,13 @@
-
-
-NoTS = 100;
+function plot_sim(NoTS, snr0, wmat, clust_dist)
+%NoTS = 100;
 % snr0 = -1;
-snr0 = -1;
-wmat = 'Martin';
-clust_dist = 'euclidean';
-
+%snr0 = 10;
+%wmat = 'Identity';
+%clust_dist = 'euclidean';
+% NoTS              =no. of TS in each cluster
+% snr0              =SNR (in dB)
+% wmat              =matrix: 'Martin' or 'Identity'
+% clust_dist        =dist clustering: 'euclidean' or 'sqEuclidean'
 mm = [];
 for N=[128 256 512 1024 2048]
 
@@ -37,5 +39,6 @@ categories = ["Rectangle window"; "Hann"; "BIC"; "KSF"; "MRI"; ...
 C = repelem(categories, 5);
 
 final_table = table(mm_col, B, C, 'VariableNames', {'sim_metric', 'N', 'Method'});
-
-writetable(final_table, 'SNR-1_sim_martin.xlsx');
+name = strcat('SNR',num2str(snr0),'_sim_id.xlsx')
+writetable(final_table, name);
+end
